@@ -13,28 +13,35 @@ class CoinsViewModel : ViewModel() {
     private val _coins = MutableStateFlow<List<Coin>>(emptyList())
     val coins: StateFlow<List<Coin>> = _coins
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    private var currentOffset = 1
+    private val limit = 20
+    var isLoading = false
+        private set
+    var endReached = false
+        private set
 
     init {
         loadCoins()
     }
 
     fun loadCoins() {
+        if (isLoading || endReached) return
+
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            isLoading = true
             try {
-                val response = ApiClient.api.getCoins(limit = 20, offset = 1)
-                _coins.value = response.data.coins
+                val response = ApiClient.api.getCoins(limit, currentOffset)
+                val newCoins = response.data.coins
+                if (newCoins.isEmpty()) {
+                    endReached = true
+                } else {
+                    _coins.value = _coins.value + newCoins
+                    currentOffset += newCoins.size
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _error.value = "Failed to load coins: ${e.message}"
             } finally {
-                _isLoading.value = false
+                isLoading = false
             }
         }
     }
