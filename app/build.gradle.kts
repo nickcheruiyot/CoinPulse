@@ -84,4 +84,9 @@ dependencies {
     implementation("io.coil-kt:coil-svg:2.7.0") // SVG support
 
 
+
+// Navigation for Jetpack Compose
+    implementation("androidx.navigation:navigation-compose:2.8.3")
+
+
 }

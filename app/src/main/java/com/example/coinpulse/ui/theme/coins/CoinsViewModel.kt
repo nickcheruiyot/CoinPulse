@@ -17,8 +17,9 @@ class CoinsViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private var currentOffset = 0   // ✅ Start from 0
+    private var currentOffset = 0
     private val limit = 20
+    private val maxCoins = 100   // ✅ stop at 100
     private var allCoinsLoaded = false
 
     init {
@@ -34,11 +35,18 @@ class CoinsViewModel : ViewModel() {
                 val response = ApiClient.api.getCoins(limit, currentOffset)
                 val newCoins = response.data.coins
 
+                // ✅ Append new coins
                 _coins.value = _coins.value + newCoins
-                currentOffset += newCoins.size // ✅ Increase offset correctly
 
-                // ✅ If API returns fewer than limit, we've reached the end
-                if (newCoins.size < limit) allCoinsLoaded = true
+                // ✅ Move offset forward
+                currentOffset += newCoins.size
+
+                // ✅ Stop at 100 or if fewer than `limit` returned
+                if (currentOffset >= maxCoins || newCoins.size < limit) {
+                    allCoinsLoaded = true
+                }
+
+                println("Loaded ${newCoins.size} coins, total=${_coins.value.size}, offset=$currentOffset")
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -48,3 +56,4 @@ class CoinsViewModel : ViewModel() {
         }
     }
 }
+
