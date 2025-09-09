@@ -1,31 +1,21 @@
 package com.example.coinpulse.ui.theme.coins
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 import com.example.coinpulse.data.remote.Coin
 
 @Composable
 fun CoinListItem(coin: Coin) {
     val context = LocalContext.current
-    val imageLoader = ImageLoader.Builder(context)
-        .components { add(SvgDecoder.Factory()) }
-        .build()
 
     Row(
         modifier = Modifier
@@ -36,9 +26,9 @@ fun CoinListItem(coin: Coin) {
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(coin.iconUrl)
+                .decoderFactory(SvgDecoder.Factory())
                 .crossfade(true)
                 .build(),
-            imageLoader = imageLoader,
             contentDescription = coin.name,
             modifier = Modifier.size(40.dp)
         )

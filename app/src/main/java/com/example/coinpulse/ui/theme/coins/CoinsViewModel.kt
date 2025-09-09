@@ -6,42 +6,44 @@ import com.example.coinpulse.data.remote.ApiClient
 import com.example.coinpulse.data.remote.Coin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CoinsViewModel : ViewModel() {
 
     private val _coins = MutableStateFlow<List<Coin>>(emptyList())
-    val coins: StateFlow<List<Coin>> = _coins
+    val coins: StateFlow<List<Coin>> = _coins.asStateFlow()
 
-    private var currentOffset = 1
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private var currentOffset = 0   // ✅ Start from 0
     private val limit = 20
-    var isLoading = false
-        private set
-    var endReached = false
-        private set
+    private var allCoinsLoaded = false
 
     init {
         loadCoins()
     }
 
     fun loadCoins() {
-        if (isLoading || endReached) return
+        if (_isLoading.value || allCoinsLoaded) return
 
         viewModelScope.launch {
-            isLoading = true
+            _isLoading.value = true
             try {
                 val response = ApiClient.api.getCoins(limit, currentOffset)
                 val newCoins = response.data.coins
-                if (newCoins.isEmpty()) {
-                    endReached = true
-                } else {
-                    _coins.value = _coins.value + newCoins
-                    currentOffset += newCoins.size
-                }
+
+                _coins.value = _coins.value + newCoins
+                currentOffset += newCoins.size // ✅ Increase offset correctly
+
+                // ✅ If API returns fewer than limit, we've reached the end
+                if (newCoins.size < limit) allCoinsLoaded = true
+
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                isLoading = false
+                _isLoading.value = false
             }
         }
     }
